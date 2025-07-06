@@ -1,0 +1,87 @@
+Find a country based on country code :
+
+ 1. Updated `Country` Entity
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Country {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String capital;
+
+    @Column(unique = true)
+    private String code; // e.g., "IN", "US"
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getCapital() { return capital; }
+    public void setCapital(String capital) { this.capital = capital; }
+
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
+}
+
+ 2. Extend Repository
+
+
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.Country;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface CountryRepository extends JpaRepository<Country, Long> {
+    Optional<Country> findByCode(String code);
+}
+
+ 3. Add to Service Layer
+
+public Optional<Country> getCountryByCode(String code) {
+    return repository.findByCode(code);
+}
+
+
+ 4. Update Controller
+
+
+@GetMapping("/code/{code}")
+public ResponseEntity<Country> getByCode(@PathVariable String code) {
+    return service.getCountryByCode(code)
+                  .map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
+}
+
+
+Sample Request & Output:
+
+ POST `/countries`
+
+{
+  "name": "India",
+  "capital": "New Delhi",
+  "code": "IN"
+}
+```
+
+GET `/countries/code/IN`
+
+Output:
+
+{
+  "id": 1,
+  "name": "India",
+  "capital": "New Delhi",
+  "code": "IN"
+}
