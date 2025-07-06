@@ -1,0 +1,107 @@
+
+
+Exercise 1: Configuring a Basic Spring Application
+
+package com.example;
+
+public class HelloWorld {
+    public void sayHello() {
+        System.out.println("Hello, Spring!");
+    }
+}
+
+
+### applicationContext.xml`
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="helloWorld" class="com.example.HelloWorld"/>
+</beans>
+
+
+### `App.java`
+
+package com.example;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        HelloWorld hw = (HelloWorld) context.getBean("helloWorld");
+        hw.sayHello();
+    }
+}
+
+
+Output:
+Hello, Spring!
+
+
+
+
+Exercise 5: Configuring the Spring IoC Container
+
+### `Engine.java`
+
+package com.example;
+
+public class Engine {
+    public String getType() {
+        return "V8 Engine";
+    }
+}
+###  `Car.java`
+
+package com.example;
+
+public class Car {
+    private Engine engine;
+
+    public void setEngine(Engine engine) {
+        this.engine = engine;
+    }
+
+    public void showSpecs() {
+        System.out.println("Car with " + engine.getType());
+    }
+}
+
+
+###  `applicationContext.xml`
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="engine" class="com.example.Engine"/>
+    <bean id="car" class="com.example.Car">
+        <property name="engine" ref="engine"/>
+    </bean>
+</beans>
+
+
+###  `App.java`
+
+package com.example;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        Car car = (Car) context.getBean("car");
+        car.showSpecs();
+    }
+}
+
+Output:
+Car with V8 Engine
