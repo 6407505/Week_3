@@ -1,0 +1,131 @@
+
+
+Exercise 2: Implementing Dependency Injection
+
+###  `Student.java`
+package com.example;
+
+public class Student {
+    private String name;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void displayInfo() {
+        System.out.println("Student name is: " + name);
+    }
+}
+
+
+### `applicationContext.xml`
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="student" class="com.example.Student">
+        <property name="name" value="John Doe"/>
+    </bean>
+</beans>
+
+
+###  `App.java`
+
+package com.example;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        Student student = (Student) context.getBean("student");
+        student.displayInfo();
+    }
+}
+Output:
+Student name is: John Doe
+
+
+
+
+Exercise 7: Implementing Constructor and Setter Injection
+
+###  `Address.java`
+package com.example;
+
+public class Address {
+    private String city;
+
+    public Address(String city) {
+        this.city = city;
+    }
+
+    public String getCity() {
+        return city;
+    }
+}
+
+
+###  `Employee.java`
+
+package com.example;
+
+public class Employee {
+    private String name;
+    private Address address;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Employee(Address address) {
+        this.address = address;
+    }
+
+    public void showDetails() {
+        System.out.println("Employee Name: " + name);
+        System.out.println("Employee City: " + address.getCity());
+    }
+}
+
+
+###  `applicationContext.xml`
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="address" class="com.example.Address">
+        <constructor-arg value="New York"/>
+    </bean>
+
+    <bean id="employee" class="com.example.Employee">
+        <constructor-arg ref="address"/>
+        <property name="name" value="Alice"/>
+    </bean>
+</beans>
+
+
+###  `App.java`
+
+package com.example;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        Employee employee = (Employee) context.getBean("employee");
+        employee.showDetails();
+    }
+}
+Output:
+Employee Name: Alice
+Employee City: New York
