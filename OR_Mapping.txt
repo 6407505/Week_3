@@ -1,0 +1,133 @@
+Demonstrate implementation of O/R Mapping :
+
+
+ 1. Entities — O/R Mapping
+
+ `Country.java`
+
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+public class Country {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String code;
+
+    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL)
+    private List<State> states;
+
+    // Getters and setters ...
+}
+
+
+ `State.java`
+
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class State {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "country_id")
+    private Country country;
+
+    // Getters and setters ...
+}
+
+
+ 2. Repositories
+
+ `CountryRepository.java`
+
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.Country;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CountryRepository extends JpaRepository<Country, Long> {
+}
+
+
+ `StateRepository.java`
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.State;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface StateRepository extends JpaRepository<State, Long> {
+}
+
+
+ 3. Service
+
+package com.example.springdatajpa.service;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.repository.CountryRepository;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CountryService {
+    private final CountryRepository repository;
+
+    public CountryService(CountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public Country saveCountry(Country country) {
+        return repository.save(country);
+    }
+}
+
+ 4. Controller
+
+package com.example.springdatajpa.controller;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.service.CountryService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/countries")
+public class CountryController {
+
+    private final CountryService service;
+
+    public CountryController(CountryService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public ResponseEntity<Country> addCountry(@RequestBody Country country) {
+        return ResponseEntity.ok(service.saveCountry(country));
+    }
+}
+
+
+ 5. Sample JSON to Test (POST `/countries`)
+
+{
+  "name": "India",
+  "code": "IN",
+  "states": [
+    { "name": "Maharashtra" },
+    { "name": "Karnataka" },
+    { "name": "Tamil Nadu" }
+  ]
+}
