@@ -1,0 +1,139 @@
+Demonstrate writing Hibernate Query Language and Native Query :
+
+
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "country")
+public class Country {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String capital;
+    private String code;
+
+    // Getters and setters ...
+}
+
+
+Step 1: Create Custom Query Methods in Repository
+
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.Country;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface CountryRepository extends JpaRepository<Country, Long> {
+
+    // 🔍 HQL Query
+    @Query("SELECT c FROM Country c WHERE c.capital = ?1")
+    List<Country> findCountriesByCapital(String capital);
+
+    // 🔍 Native SQL Query
+    @Query(value = "SELECT * FROM country WHERE code = ?1", nativeQuery = true)
+    Country findCountryByCodeNative(String code);
+}
+
+
+Step 2: Service Layer
+
+package com.example.springdatajpa.service;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.repository.CountryRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CountryService {
+
+    private final CountryRepository repository;
+
+    public CountryService(CountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<Country> getByCapital(String capital) {
+        return repository.findCountriesByCapital(capital);
+    }
+
+    public Country getByCodeNative(String code) {
+        return repository.findCountryByCodeNative(code);
+    }
+}
+
+
+ Step 3: Controller
+
+package com.example.springdatajpa.controller;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.service.CountryService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/countries")
+public class CountryController {
+
+    private final CountryService service;
+
+    public CountryController(CountryService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/capital/{capital}")
+    public List<Country> getByCapital(@PathVariable String capital) {
+        return service.getByCapital(capital);
+    }
+
+    @GetMapping("/native/{code}")
+    public Country getByCodeNative(@PathVariable String code) {
+        return service.getByCodeNative(code);
+    }
+}
+
+
+ Sample Data Input (POST `/countries`)
+
+{
+  "name": "India",
+  "capital": "New Delhi",
+  "code": "IN"
+}
+
+
+Sample Requests to Test Queries
+ HQL Query Test
+
+**GET** `/countries/capital/New Delhi`
+Output:
+[
+  {
+    "id": 1,
+    "name": "India",
+    "capital": "New Delhi",
+    "code": "IN"
+  }
+]
+
+ Native SQL Query Test
+
+**GET** `/countries/native/IN`
+Output:
+{
+  "id": 1,
+  "name": "India",
+  "capital": "New Delhi",
+  "code": "IN"
+}
