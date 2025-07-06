@@ -1,0 +1,141 @@
+Implementation of Query Methods feature of Spring Data JPA :
+
+
+ 1. Entity: `Country.java`
+
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Country {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String capital;
+    private String code;
+
+    // Getters and setters ...
+}
+
+
+ 2. Repository: `CountryRepository.java`
+
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.Country;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface CountryRepository extends JpaRepository<Country, Long> {
+    
+    // Find countries by name (exact match)
+    List<Country> findByName(String name);
+    
+    // Find countries where name contains substring (case insensitive)
+    List<Country> findByNameContainingIgnoreCase(String namePart);
+    
+    // Find countries by capital city
+    List<Country> findByCapital(String capital);
+    
+    // Find country by unique code
+    Country findByCode(String code);
+}
+
+
+ 3. Service: `CountryService.java`
+
+package com.example.springdatajpa.service;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.repository.CountryRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CountryService {
+
+    private final CountryRepository repository;
+
+    public CountryService(CountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<Country> findByName(String name) {
+        return repository.findByName(name);
+    }
+
+    public List<Country> findByNameContaining(String part) {
+        return repository.findByNameContainingIgnoreCase(part);
+    }
+
+    public List<Country> findByCapital(String capital) {
+        return repository.findByCapital(capital);
+    }
+
+    public Country findByCode(String code) {
+        return repository.findByCode(code);
+    }
+}
+
+
+ 4. Controller: `CountryController.java`
+
+package com.example.springdatajpa.controller;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.service.CountryService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/countries")
+public class CountryController {
+
+    private final CountryService service;
+
+    public CountryController(CountryService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/name/{name}")
+    public List<Country> getByName(@PathVariable String name) {
+        return service.findByName(name);
+    }
+
+    @GetMapping("/search/{namePart}")
+    public List<Country> searchByName(@PathVariable String namePart) {
+        return service.findByNameContaining(namePart);
+    }
+
+    @GetMapping("/capital/{capital}")
+    public List<Country> getByCapital(@PathVariable String capital) {
+        return service.findByCapital(capital);
+    }
+
+    @GetMapping("/code/{code}")
+    public Country getByCode(@PathVariable String code) {
+        return service.findByCode(code);
+    }
+}
+
+
+5. Sample Queries & Expected Outputs
+
+* **GET** `/countries/name/India`
+  Returns countries named exactly “India”.
+
+* **GET** `/countries/search/ind`
+  Returns countries with name containing “ind” (case-insensitive) — e.g., India, Indonesia.
+
+* **GET** `/countries/capital/New Delhi`
+  Returns countries whose capital is “New Delhi”.
+
+* **GET** `/countries/code/IN`
+  Returns country with code “IN”.
