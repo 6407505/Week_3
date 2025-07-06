@@ -1,0 +1,115 @@
+Add a new country :
+
+
+1. Entity: `Country.java` 
+package com.example.springdatajpa.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Country {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String capital;
+    private String code;  // e.g. "IN", "US"
+
+    // getters and setters
+    // ...
+}
+
+
+ 2. Repository: `CountryRepository.java`
+
+package com.example.springdatajpa.repository;
+
+import com.example.springdatajpa.entity.Country;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CountryRepository extends JpaRepository<Country, Long> {
+}
+
+
+ 3. Service: `CountryService.java`
+
+package com.example.springdatajpa.service;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.repository.CountryRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CountryService {
+
+    private final CountryRepository repository;
+
+    public CountryService(CountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public Country addCountry(Country country) {
+        return repository.save(country);
+    }
+
+    public List<Country> getAllCountries() {
+        return repository.findAll();
+    }
+}
+
+
+ 4. Controller: `CountryController.java`
+
+package com.example.springdatajpa.controller;
+
+import com.example.springdatajpa.entity.Country;
+import com.example.springdatajpa.service.CountryService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/countries")
+public class CountryController {
+
+    private final CountryService service;
+
+    public CountryController(CountryService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public ResponseEntity<Country> addCountry(@RequestBody Country country) {
+        Country savedCountry = service.addCountry(country);
+        return ResponseEntity.ok(savedCountry);
+    }
+
+    @GetMapping
+    public List<Country> getAllCountries() {
+        return service.getAllCountries();
+    }
+}
+
+
+5. Sample Request to Add a Country (POST `/countries`)
+
+{
+  "name": "Japan",
+  "capital": "Tokyo",
+  "code": "JP"
+}
+
+
+6. Sample Response
+
+{
+  "id": 1,
+  "name": "Japan",
+  "capital": "Tokyo",
+  "code": "JP"
+}
